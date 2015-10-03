@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+IDEA=''
+PROJECT_DIR=''
+
+function main() {
+  openIdea "$@"
+}
+
+function openIdea() {
+
+  if [ -f "$1" ]; then
+    openByFile
+  fi
+
+  openWithDirectory "$1"
+}
+
+function openByFile() {
+
+  if [ "$1" ~= '.php' ]; then
+    IDEA=$(getPhpStormApp)
+  fi
+
+  if [ "$1" ~= '.js' ] || [ "$1" ~= '.css' ]; then
+    IDEA=$(getWebStormApp)
+  fi
+
+  open -a "$IDEA" "$1"
+}
+
+function openWithDirectory() {
+
+  PROJECT_DIR=$(getProjectDirectory)
+
+  detectProjectIdeaApplication
+
+  if [ -d "${PROJECT_DIR}/.idea" ]; then
+
+    echo "opening via the .idea dir"
+    open -a "$IDEA" ${PROJECT_DIR}
+
+  elif [ -f "${PROJECT_DIR}/*.ipr" ]; then
+
+    echo "opening via the project file"
+    open -a "$IDEA" $(ls -1d *.ipr | head -n1)
+
+  elif [ -f "${PROJECT_DIR}/pom.xml" ]; then
+
+    open -a "$IDEA" "${PROJECT_DIR}/pom.xml"
+
+  else
+    open -a "$IDEA" "${PROJECT_DIR}"
+  fi
+
+}
+
+function getProjectDirectory() {
+
+  if [ -d "$1" ]; then
+    ls -1d "$1" | head -n1
+  fi
+
+  if [ -z "$1" ]; then
+    pwd
+  fi
+
+}
+
+function detectProjectIdeaApplication() {
+
+  if [ -f "${PROJECT_DIR}/composer.json" ]; then
+    IDEA=$(getPhpStormApp)
+    return 0
+  fi
+
+  if [ -f "${PROJECT_DIR}/package.json" ]; then
+    IDEA=$(getWebStormApp)
+    return 0
+  fi
+
+  IDEA=$(getIntelliJ)
+  
+}
+
+function getIntelliJ() {
+  ls -1d /Applications/IntelliJ\ * | tail -n1
+}
+
+function getPhpStormApp() {
+  ls -1d /Applications/PhpStorm* | tail -n1
+}
+
+function getWebStormApp() {
+  ls -1d /Applications/WebStorm* | tail -n1
+}
+
+main "$@" 
+
