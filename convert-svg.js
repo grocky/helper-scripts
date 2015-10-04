@@ -1,12 +1,8 @@
 #!/usr/bin/env node
 
-var program = require('commander');
-var exec = require('child_process').exec;
-var path = require('path');
-var traceback = require('traceback');
-var colors = require('colors');
+var common = require('./common');
 
-program
+var script = common.script
     .version('0.0.1')
     .description('create a png from an svg using ImageMagick')
     .arguments('<svg-file>')
@@ -15,27 +11,15 @@ program
     .option('-F, --filename <filename>', 'The name of the resulting file. Defaults to <filename>-<W>x<H>.png')
     .parse(process.argv);
 
-colors.setTheme({
-    input: 'gray',
-    verbose: 'cyan',
-    prompt: 'gray',
-    data: 'gray',
-    help: 'cyan',
-    info: 'green',
-    warn: 'yellow',
-    debug: 'blue',
-    error: 'red'
-});
-
-var filename = program.args[0];
+var filename = script.args[0];
 if (typeof filename === 'undefined') {
     console.log('    No svg-file given!'.error);
     process.exit(1);
 }
 
-var toWidth = program.width || null;
-var toHeight = program.height || null;
-var toName = program.filename || null;
+var toWidth = script.width || null;
+var toHeight = script.height || null;
+var toName = script.filename || null;
 
 convertSvgToPng(filename, toWidth, toHeight, toName, function (error, result) {
     if (error) {
@@ -85,14 +69,14 @@ function convertSvgToPng(filename, toWidth, toHeight, toName, callback) {
             + ' -resize ' + size + ' '
             + filename + ' ' + toName;
 
-        execute(command, callback);
+        common.execute(command, callback);
     });
 }
 
 function getFileInfo(filename, callback) {
 
     var command = 'convert ' + filename + ' -format "%f %m %w %h %x %y\\n" info:'
-    execute(command, function(error, output) {
+    common.execute(command, function(error, output) {
         if (error) {
             callback(error);
         }
@@ -129,31 +113,10 @@ function calculateRasterDensity(rasterSize, originalSize, originalDensity) {
         originalSize: originalSize,
         originalDensity: originalDensity,
         rasterSize:rasterSize,
-        calculatedDensity: Math.floor(calculatedDensity * 1.2)
+        calculatedDensity: Math.floor(calculatedDensity * 1.1)
     };
 
     console.log('calculateRasterDensity: '.debug + JSON.stringify(sizeInfo,null,2));
 
     return sizeInfo.calculatedDensity;
-}
-
-function execute(command, callback) {
-    var options = { cwd: process.cwd() };
-    exec(command, options, function(error, stdout, stderr) {
-        console.log('execute: '.debug + command);
-        if (error) {
-            error.stdout = stdout;
-            error.stderr = stderr;
-            callback(error);
-        }
-        callback(null, stdout);
-    })
-}
-
-function objectCallback(error, object) {
-    if (error) {
-        console.log(error.stderr.error);
-        process.exit(error.code);
-    }
-    console.log('objectCallback: '.debug + JSON.stringify(object, null, 2));
 }
