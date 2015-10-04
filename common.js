@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-"use strict";
+'use strict';
 
 var exec = require('child_process').exec;
 
@@ -38,7 +38,8 @@ exports.execute = function(command, dryRun, callback) {
 
     var prefix = 'execute: '.debug;
     if (dryRun) prefix = 'DRY_RUN '.warn + prefix;
-    // console.log(prefix + command);
+
+    //console.log(prefix + command);
 
     if (!dryRun) {
         var options = { cwd: process.cwd() };
@@ -48,7 +49,7 @@ exports.execute = function(command, dryRun, callback) {
                 error.stderr = stderr;
                 callback(error);
             }
-            // console.log(stdout);
+            //console.log(stdout);
             callback(null, stdout);
         });
     }

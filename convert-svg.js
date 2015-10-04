@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-"use strict";
+'use strict';
 
 var common = require('./common');
 
@@ -14,33 +14,31 @@ var script = common.commander
 
 var filename = script.args[0];
 if (typeof filename === 'undefined') {
-    console.log('    No svg-file given!'.error);
+    console.error('    No svg-file given!'.error);
     process.exit(1);
 }
 
-var toWidth = script.width || null;
-var toHeight = script.height || null;
-var toName = script.filename || null;
+var toWidth = script.width;
+var toHeight = script.height;
+var toName = script.filename;
 
 convertSvgToPng(filename, toWidth, toHeight, toName, function (error, result) {
     if (error) {
-        console.log(JSON.stringify(error, null, 2).error);
+        console.error(JSON.stringify(error, null, 2).error);
         process.exit(error.code);
     }
-    console.log(result.info);
+    console.info('done');
 });
 
 function convertSvgToPng(filename, toWidth, toHeight, toName, callback) {
 
-    args = {
-        filename: filename,
-        toWidth: toWidth,
-        toHeight: toHeight,
-        toName: toName
-    };
-    console.log('convertSvgToPng: '.debug + JSON.stringify(args, null, 2));
     var args = [].slice.call(arguments);
+
+    filename = args.shift();
     callback = callback || args.pop();
+    toWidth = args.shift() || null;
+    toHeight = args.shift() || null;
+    toName = args.shift() || null;
 
     getFileInfo(filename, function(error, fileInfo) {
 
@@ -70,7 +68,8 @@ function convertSvgToPng(filename, toWidth, toHeight, toName, callback) {
             + ' -resize ' + size + ' '
             + filename + ' ' + toName;
 
-        common.execute(command, callback);
+        console.info('converting %s to %s with size: %s'.info, filename, toName, size);
+        common.execute(command, common.dryRun, callback);
     });
 }
 
@@ -95,7 +94,7 @@ function getFileInfo(filename, callback) {
             density: parseInt(density)
         };
 
-        console.log('getFileInfo: '.debug + JSON.stringify(fileInfo, null, 2));
+        //console.debug('getFileInfo: '.debug + JSON.stringify(fileInfo, null, 2));
         callback(null, fileInfo);
     });
 }
@@ -117,7 +116,7 @@ function calculateRasterDensity(rasterSize, originalSize, originalDensity) {
         calculatedDensity: Math.floor(calculatedDensity * 1.1)
     };
 
-    console.log('calculateRasterDensity: '.debug + JSON.stringify(sizeInfo,null,2));
+    //console.debug('calculateRasterDensity: '.debug + JSON.stringify(sizeInfo,null,2));
 
     return sizeInfo.calculatedDensity;
 }
