@@ -7,8 +7,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-      "convert-svg": "convert-svg.js"
+    "convert-svg": "convert-svg.js",
+    "jetbrains": "jetbrains.js"
   },
   "author": "Rocky Gray",
-  "license": "ISC"
+  "repository": "git@github.com:grocky/helper-scripts.git",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "commander": "^2.8.1",
+    "lodash": "^3.10.1"
+  }
 }

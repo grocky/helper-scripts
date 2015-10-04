@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+"use strict";
 
 var exec = require('child_process').exec;
 
 var exports = module.exports = {};
 
-exports.script = require('commander');
+exports.commander = require('commander');
+exports.lodash = require('lodash');
 exports.colors = require('colors');
 exports.colors.setTheme({
     input: 'gray',
@@ -17,6 +19,7 @@ exports.colors.setTheme({
     debug: 'blue',
     error: 'red'
 });
+exports.dryRun = process.env.DRY_RUN || false;
 
 exports.objectCallback = function (error, object) {
     if (error) {
@@ -26,17 +29,26 @@ exports.objectCallback = function (error, object) {
     console.log('objectCallback: '.debug + JSON.stringify(object, null, 2));
 };
 
-exports.execute = function(command, callback) {
+exports.execute = function(command, dryRun, callback) {
 
-    console.log('execute: '.debug + command);
+    var args = [].slice.call(arguments);
+    command = args.shift();
+    callback = args.pop();
+    dryRun = args[0] || false;
 
-    var options = { cwd: process.cwd() };
-    exec(command, options, function(error, stdout, stderr) {
-        if (error) {
-            error.stdout = stdout;
-            error.stderr = stderr;
-            callback(error);
-        }
-        callback(null, stdout);
-    })
+    var prefix = 'execute: '.debug;
+    if (dryRun) prefix = 'DRY_RUN '.warn + prefix;
+    console.log(prefix + command);
+
+    if (!dryRun) {
+        var options = { cwd: process.cwd() };
+        exec(command, options, function(error, stdout, stderr) {
+            if (error) {
+                error.stdout = stdout;
+                error.stderr = stderr;
+                callback(error);
+            }
+            callback(null, stdout);
+        });
+    }
 };
