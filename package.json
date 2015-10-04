@@ -1,10 +1,13 @@
 {
-  "name": "bin",
+  "name": "helper-scripts",
   "version": "1.0.0",
   "description": "command line helpers",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+      "convert-svg": "convert-svg.js"
   },
   "author": "Rocky Gray",
   "license": "ISC"
