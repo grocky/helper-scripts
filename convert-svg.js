@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+"use strict";
 
 var common = require('./common');
 
-var script = common.script
+var script = common.commander
     .version('0.0.1')
     .description('create a png from an svg using ImageMagick')
     .arguments('<svg-file>')

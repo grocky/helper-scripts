@@ -23,66 +23,62 @@ function openByDirectory(directory) {
 
     var webStormFiles = ['package.json', 'bower.json', 'gulpfile.json', 'gruntfile.json'];
     var phpStormFiles = ['composer.json'];
-    var intelliJFiles= ['pom.xml'];
+    var projectFilePatterns = [/pom\.xml/, /\.ipr/, /build\.xml/];
 
     fs.readdir(directory, function(err, items) {
         var hasWebstormFiles = _.size(_.intersection(items, webStormFiles)) > 0;
         var hasPhpStormFiles = _.size(_.intersection(items, phpStormFiles)) > 0;
-        var hasIntelliJStormFiles = _.size(_.intersection(items, intelliJFiles)) > 0;
 
+        var project = _.find(items, function(item) {
+            var hasProjectFile = false;
+            _.each(projectFilePatterns, function(pattern) {
+                hasProjectFile = hasProjectFile || pattern.test(item);
+            });
+            return hasProjectFile;
+        });
+
+        var appName = '';
         if (hasPhpStormFiles) {
-            getPhpStormApp(openByApplication);
+            appName = 'PhpStorm';
         } else if (hasWebstormFiles) {
-            getWebStormApp(openByApplication);
+            appName = 'WebStorm';
         } else {
-            getIntelliJApp(openByApplication);
+            appName = 'IntelliJ';
         }
-    });
 
-    // console.log('opening by file'.debug);
-    //
-    // var extension = directory.split('.').pop().toLowerCase();
-    //
-    // switch (extension) {
-    //     case 'php':
-    //         getPhpStormApp(openByApplication);
-    //         break;
-    //     case 'js':
-    //     case 'css':
-    //     case 'json':
-    //         getWebStormApp(openByApplication);
-    //         break;
-    //     default:
-    //         getIntelliJApp(openByApplication);
-    // }
+        getJetBrainsApp(appName, project, openByApplication);
+    });
 }
 
-function openByApplication(error, application) {
+function openByApplication(error, application, project) {
 
-    application = application.replace(/\s+$/g, '');
+    if (error) {
+        console.error(error.stderr.error);
+        process.exit(error.code);
+    }
 
-    common.execute('open -a "' + application + '" "' + directory + '"', common.dryRun, function(error, stdout) {
+    var filename = null;
+    if (application === '.idea') {
+        filename = directory;
+    } else {
+        filename = project || directory;
+    }
+
+    common.execute('open -a "' + application + '" "' + filename + '"', common.dryRun, function(error, stdout) {
         if (error) {
-            console.log(error.stderr.error);
+            console.error(error.stderr.error);
             process.exit(error.code);
         }
         console.log(stdout.info);
     });
 }
 
-function getIntelliJApp(callback) {
-    getJetBrainsApp('IntelliJ', callback);
-}
-
-function getPhpStormApp(callback) {
-    getJetBrainsApp('PhpStorm', callback);
-}
-
-function getWebStormApp(callback) {
-    getJetBrainsApp('WebStorm', callback);
-}
-
-function getJetBrainsApp(appName, callback) {
+function getJetBrainsApp(appName, project, callback) {
     console.log('opening with %s'.info, appName);
-    common.execute('ls -1d /Applications/' + appName + '* | tail -n1', callback);
+    common.execute('ls -1d /Applications/' + appName + '* | tail -n1', function(error, application) {
+        if (error) callback(error);
+
+        application = application.replace(/\s+$/g, '');
+        callback(null, application, project);
+    });
 }

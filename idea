@@ -4,29 +4,7 @@ IDEA=''
 PROJECT_DIR=''
 
 function main() {
-  openIdea "$@"
-}
-
-function openIdea() {
-
-  if [ -f "$1" ]; then
-    openByFile
-  fi
-
   openWithDirectory "$1"
-}
-
-function openByFile() {
-
-  if [ "$1" ~= '.php' ]; then
-    IDEA=$(getPhpStormApp)
-  fi
-
-  if [ "$1" ~= '.js' ] || [ "$1" ~= '.css' ]; then
-    IDEA=$(getWebStormApp)
-  fi
-
-  open -a "$IDEA" "$1"
 }
 
 function openWithDirectory() {
@@ -80,7 +58,7 @@ function detectProjectIdeaApplication() {
   fi
 
   IDEA=$(getIntelliJ)
-  
+
 }
 
 function getIntelliJ() {
@@ -95,5 +73,4 @@ function getWebStormApp() {
   ls -1d /Applications/WebStorm* | tail -n1
 }
 
-main "$@" 
-
+main "$@"
